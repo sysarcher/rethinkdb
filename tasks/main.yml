@@ -1,0 +1,46 @@
+---
+- name: add rethinkdb repo
+  apt_repository: repo="deb http://download.rethinkdb.com/apt trusty main" state=present
+
+- name: ensure aptitude is installed
+  apt: pkg=aptitude state=present
+
+- name: update apt
+  apt: update_cache=yes upgrade=safe cache_valid_time=3600
+
+- name: install rethinkdb
+  apt: pkg=rethinkdb state=present force=yes
+
+- name: remove rethinkdb init.d script
+  file: name=/etc/init.d/rethinkdb state=absent
+
+- name: add rethinkdb instance configuration
+  template: src=rethinkdb.conf.j4
+            dest=/etc/rethinkdb/instances.d/default.conf
+            owner=root
+            group=root
+            mode=0644
+  notify: restart rethinkdb
+
+- name: create rethinkdb data directory
+  file: name=/var/lib/rethinkdb/default state=directory group=rethinkdb owner=rethinkdb
+
+- name: create rethinkdb log directory
+  file: name=/var/log/rethinkdb state=directory group=rethinkdb owner=rethinkdb
+
+- name: create rethinkdb run directory
+  file: name=/var/run/rethinkdb state=directory group=rethinkdb owner=rethinkdb
+
+- name: create rethinkdb default instance
+  command: rethinkdb create --runuser rethinkdb --rungroup rethinkdb -d /var/lib/rethinkdb/default/data
+           creates=/var/lib/rethinkdb/default/data
+
+- name: add supervisor config file
+  copy: src=supervisord.conf
+        dest=/etc/supervisord.d/rethinkdb.conf
+        owner=root
+        group=root
+        mode=0644
+
+- name: reload supervisord and start rethinkdb
+  supervisorctl: name=rethinkdb state=present

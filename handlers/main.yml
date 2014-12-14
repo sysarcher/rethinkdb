@@ -1,0 +1,3 @@
+---
+- name: restart rethinkdb
+  supervisorctl: name=rethinkdb state=restarted

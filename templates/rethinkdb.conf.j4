@@ -1,0 +1,13 @@
+# https://github.com/rethinkdb/rethinkdb/blob/master/packaging/assets/config/default.conf.sample
+runuser=rethinkdb
+rungroup=rethinkdb
+pid-file=/var/run/rethinkdb/default.pid
+directory=/var/lib/rethinkdb/default/data
+log-file=/var/log/rethinkdb/default.log
+bind=all
+
+{% if rethinkdb_joins %}
+{% for join in rethinkdb_joins %}
+join={{ join }}
+{% endfor %}
+{% endif %}
