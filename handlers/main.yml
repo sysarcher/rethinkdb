@@ -1,3 +1,6 @@
 ---
 - name: restart rethinkdb
-  supervisorctl: name=rethinkdb state=restarted
+  service:
+    name=rethinkdb
+    state=restarted
+    enabled=yes

@@ -1,46 +1,37 @@
 ---
 - name: add rethinkdb repo
-  apt_repository: repo="deb http://download.rethinkdb.com/apt trusty main" state=present
+  apt_repository: repo="deb http://download.rethinkdb.com/apt {{ansible_lsb.codename}} main" state=present
+  register: apt_repo
 
-- name: ensure aptitude is installed
-  apt: pkg=aptitude state=present
+- name: add rethinkdb atp gpg key
+  apt_key: url="http://download.rethinkdb.com/apt/pubkey.gpg"
+  register: apt_gpg
 
 - name: update apt
-  apt: update_cache=yes upgrade=safe cache_valid_time=3600
+  apt: update_cache=yes cache_valid_time=3600
+  when: apt_gpg | changed or apt_repo | changed
 
 - name: install rethinkdb
   apt: pkg=rethinkdb state=present force=yes
 
-- name: remove rethinkdb init.d script
-  file: name=/etc/init.d/rethinkdb state=absent
+- name: create rethinkdb log directory
+  file: name={{rethinkdb_log}} state=directory group={{rethinkdb_group}} owner={{rethinkdb_user}}
 
-- name: add rethinkdb instance configuration
-  template: src=rethinkdb.conf.j4
-            dest=/etc/rethinkdb/instances.d/default.conf
+- name: create rethinkdb data directory
+  file: name={{rethinkdb_directory}} state=directory group={{rethinkdb_group}} owner={{rethinkdb_user}}
+
+- name: check if rethinkdb data directory exists
+  stat: path="{{rethinkdb_directory}}/{{inventory_hostname}}"
+  register: rethinkdb_directory_exists
+
+- name: create rethinkdb data
+  command: rethinkdb create --runuser {{rethinkdb_user}} --rungroup {{rethinkdb_group}} -d {{rethinkdb_directory}}/{{inventory_hostname}}
+  when: not rethinkdb_directory_exists.stat
+
+- name: create rethinkdb configuration file
+  template: src=rethinkdb.conf.j2
+            dest=/etc/rethinkdb/instances.d/{{inventory_hostname}}.conf
             owner=root
             group=root
             mode=0644
   notify: restart rethinkdb
-
-- name: create rethinkdb data directory
-  file: name=/var/lib/rethinkdb/default state=directory group=rethinkdb owner=rethinkdb
-
-- name: create rethinkdb log directory
-  file: name=/var/log/rethinkdb state=directory group=rethinkdb owner=rethinkdb
-
-- name: create rethinkdb run directory
-  file: name=/var/run/rethinkdb state=directory group=rethinkdb owner=rethinkdb
-
-- name: create rethinkdb default instance
-  command: rethinkdb create --runuser rethinkdb --rungroup rethinkdb -d /var/lib/rethinkdb/default/data
-           creates=/var/lib/rethinkdb/default/data
-
-- name: add supervisor config file
-  copy: src=supervisord.conf
-        dest=/etc/supervisord.d/rethinkdb.conf
-        owner=root
-        group=root
-        mode=0644
-
-- name: reload supervisord and start rethinkdb
-  supervisorctl: name=rethinkdb state=present

@@ -1,2 +1,12 @@
 ---
+rethinkdb_user: "rethinkdb"
+rethinkdb_group: "rethinkdb"
+rethinkdb_directory: "/var/log/rethinkdb/default"
+rethinkdb_pid: "/var/run/rethinkdb/rethinkdb.pid"
+rethinkdb_log: "/var/log/rethinkdb"
+rethinkdb_bind: "all"
+rethinkdb_http_port: 8080
+rethinkdb_server_name: "{{ inventory_hostname }}"
+
+rethinkdb_cluster: false
 rethinkdb_joins: []

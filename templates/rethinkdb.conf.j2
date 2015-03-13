@@ -1,0 +1,21 @@
+# https://github.com/rethinkdb/rethinkdb/blob/master/packaging/assets/config/default.conf.sample
+runuser={{rethinkdb_user}}
+rungroup={{rethinkdb_group}}
+pid-file={{rethinkdb_pid}}
+directory={{ rethinkdb_directory }}/{{ inventory_hostname }}
+log-file={{ rethinkdb_log }}/{{inventory_hostname}}.log
+bind={{rethinkdb_bind}}
+http-port={{rethinkdb_http_port}}
+server-name={{rethinkdb_server_name}}
+
+{% if rethinkdb_cluster %}
+{% for host in groups['rethinkdb_serve_hosts'] %}
+{% if host != inventory_hostname %}
+join=127.0.0.1:{{ hostvars[host]['rethinkdb_cluster_port'] }}
+{% endif %}
+{% endfor %}
+{% elif rethinkdb_joins %}
+{% for join in rethinkdb_joins %}
+join={{ join }}
+{% endfor %}
+{% endif %}

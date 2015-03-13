@@ -3,7 +3,7 @@ galaxy_info:
   author: playlist
   company: Playlist
   description: Installs rethinkdb
-  min_ansible_version: 1.6
+  min_ansible_version: 1.8
   license: MIT
   platforms:
     - name: Ubuntu
@@ -12,5 +12,4 @@ galaxy_info:
   categories:
     - database
 
-dependencies:
-  - playlist.supervisord
+dependencies: []
