@@ -3,7 +3,7 @@
   apt_repository: repo="deb http://download.rethinkdb.com/apt {{ansible_lsb.codename}} main" state=present
   register: apt_repo
 
-- name: add rethinkdb atp gpg key
+- name: add rethinkdb apt gpg key
   apt_key: url="http://download.rethinkdb.com/apt/pubkey.gpg"
   register: apt_gpg
 
